@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.19)
 
-project(SdlWithCMake VERSION 1.0)
-
 if (DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+    cmake_path(SET VCPKG_PATH NORMALIZE $ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
+    set(CMAKE_TOOLCHAIN_FILE ${VCPKG_PATH} CACHE STRING "")
 endif()
+
+project(SdlWithCMake VERSION 1.0)
 
 find_package(sdl2 CONFIG REQUIRED)
 
@@ -18,9 +19,17 @@ add_executable(
     ${SOURCES}
 )
 
-target_link_libraries(SdlWithCMake PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(
+    SdlWithCMake PRIVATE
+    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
+    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+)
 
 add_custom_command(
     TARGET SdlWithCMake POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/resources $<TARGET_FILE_DIR:SdlWithCMake>/resources
 )
+
+enable_testing()
+
+add_subdirectory(test)
