@@ -414,3 +414,6 @@ CTestTestfile.cmake
 _deps
 out
 build
+
+# vcpkg
+vcpkg_installed/
